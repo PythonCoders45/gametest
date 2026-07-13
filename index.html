@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Looping Parallax Backgrounds</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
     <style>
         body, html {
             margin: 0;
@@ -14,14 +16,14 @@
             background-color: #000;
         }
 
-        /* Container to hold both background layers */
+        /* Container to hold all background layers */
         .bg-container {
             position: relative;
             width: 100%;
             height: 100%;
         }
 
-        /* Base background layer (Slower stars - 32x32 original) */
+        /* Layer 1: Stars (Slower background - 32x32 original) */
         .bg-layer-1 {
             position: absolute;
             top: 0;
@@ -29,21 +31,21 @@
             width: 100%;
             height: 100%;
             background-image: url('night.png');
-            background-repeat: repeat; /* Repeat everywhere for stars */
+            background-repeat: repeat; 
             background-size: 128px 128px; 
             image-rendering: pixelated;
             z-index: 1;
         }
 
-        /* Foreground background layer (Faster buildings - 64x64 original) */
+        /* Layer 2: Buildings (Midground - 64x64 original) */
         .bg-layer-2 {
             position: absolute;
-            bottom: 0; /* Lock buildings to the bottom of the screen */
+            bottom: 0; 
             left: 0;
             width: 100%;
             height: 576px; 
             background-image: url('buildings.png');
-            background-repeat: repeat-x; /* Only loop horizontally */
+            background-repeat: repeat-x; 
             background-size: auto 100%; 
             image-rendering: pixelated;
             z-index: 2;
@@ -52,16 +54,79 @@
         /* Layer 3: Ground (Foreground - 64 wide x 16 high) */
         .bg-layer-3 {
             position: absolute;
-            bottom: 0; /* Stays at the absolute bottom */
+            bottom: 0; 
             left: 0;
             width: 100%;
-            height: 96px; /* 6x scale height (16 * 6 = 96) */
+            height: 96px; 
             background-image: url('pixil-frame-0 (29).png');
             background-repeat: repeat-x; 
             background-size: auto 100%;
             image-rendering: pixelated;
-            /* High z-index ensures it renders visually ON TOP of the buildings */
             z-index: 99; 
+        }
+
+        /* UI Container (Top Left Corner) */
+        .ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            font-family: 'Press Start 2P', monospace;
+            color: #ffffff;
+            user-select: none;
+        }
+
+        /* 8-Bit Score Counter */
+        .score-ui {
+            font-size: 24px;
+            text-shadow: 3px 3px 0px #000;
+            margin-bottom: 15px;
+        }
+
+        /* MK Style Health Container */
+        .health-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        /* Mortal Kombat Style Health Bar border */
+        .health-bar-bg {
+            width: 200px;
+            height: 16px;
+            background-color: #333;
+            border: 3px solid #fff;
+            box-shadow: 2px 2px 0px #000;
+            padding: 2px;
+            box-sizing: border-box;
+        }
+
+        /* MK Danger-Yellow Health Fill */
+        .health-bar-fill {
+            width: 100%;
+            height: 100%;
+            background-color: #ffcc00; /* Classic fighting game health yellow */
+            transition: width 0.1s ease-out; /* Smooth health drop look */
+        }
+
+        /* Fatality Overlay Screen */
+        .fatality-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.3);
+            z-index: 101;
+            font-family: 'Press Start 2P', monospace;
+            color: #ff0000;
+            font-size: 4rem;
+            text-align: center;
+            line-height: 100vh;
+            text-shadow: 5px 5px 0px #000;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
@@ -69,29 +134,69 @@
 <body>
 
     <div class="bg-container">
+        <div class="ui-container">
+            <div class="score-ui">SCORE: <span id="score-val">0</span></div>
+            
+            <div class="health-container">
+                <span>HP:</span>
+                <div class="health-bar-bg">
+                    <div id="health-fill" class="health-bar-fill"></div>
+                </div>
+                <div><span id="health-val">100</span>%</div>
+            </div>
+        </div>
+
+        <div id="fatality" class="fatality-screen">FATALITY</div>
+
         <div class="bg-layer-1"></div>
         <div class="bg-layer-2"></div>
         <div class="bg-layer-3"></div>
     </div>
 
     <script>
+        // Global Game Variables
+        let currentScore = 0;
+        let currentHealth = 100;
+
+        // FUNCTION TO CHANGE THE SCORE
+        function changeScore(amount) {
+            currentScore += amount;
+            $('#score-val').text(currentScore);
+        }
+
+        // FUNCTION TO CHANGE HEALTH PERCENTAGE
+        // Example: changeHealth(-20); takes away 20% health.
+        function changeHealth(amount) {
+            currentHealth += amount;
+            
+            // Constrain health between 0 and 100
+            if (currentHealth > 100) currentHealth = 100;
+            if (currentHealth < 0) currentHealth = 0;
+
+            // Update text value and visual bar width
+            $('#health-val').text(currentHealth);
+            $('#health-fill').css('width', currentHealth + '%');
+
+            // Trigger Fatal Screen if health drops to 0
+            if (currentHealth <= 0) {
+                $('#fatality').fadeIn(200);
+            } else {
+                $('#fatality').fadeOut(100);
+            }
+        }
+
         $(document).ready(function() {
-            // Track positions for the backgrounds
             let posX1 = 0;
             let posX2 = 0;
             let posX3 = 0;
             
-            // Speeds for each layer (pixels per frame)
-            const speed1 = 0.5; // Stars move slower
-            const speed2 = 2.0; // Buildings move faster
+            const speed1 = 0.5; 
+            const speed2 = 2.0; 
 
-            // Ground speed variable (1 pixel per second)
             const pixelsPerSecond = 1; 
             let lastTime = performance.now();
 
-            // Added 'currentTime' argument here so requestAnimationFrame can pass it in
             function animateBackgrounds(currentTime) {
-                // Calculate time passed since the last frame
                 let deltaTime = (currentTime - lastTime) / 1000;
                 lastTime = currentTime;
                 
@@ -99,17 +204,30 @@
                 posX2 -= speed2;
                 posX3 -= pixelsPerSecond * deltaTime;
 
-                // Apply positions (keeping vertical axes locked)
                 $('.bg-layer-1').css('background-position', posX1 + 'px 0px');
                 $('.bg-layer-2').css('background-position', posX2 + 'px bottom');
                 $('.bg-layer-3').css('background-position', posX3 + 'px bottom');
 
-                // Loop the animation continuously
                 requestAnimationFrame(animateBackgrounds);
             }
 
-            // Start the loop and pass the initial frame time
             requestAnimationFrame(animateBackgrounds);
+
+            // --- TEST DRIVE THE FUNCTIONS ---
+            // Simulating a game loop test:
+            // 1. Earn 5 points every second
+            setInterval(function() {
+                if (currentHealth > 0) {
+                    changeScore(5);
+                }
+            }, 1000);
+
+            // 2. Take 15% damage every 3 seconds to see the function update the percentage
+            setInterval(function() {
+                if (currentHealth > 0) {
+                    changeHealth(-15);
+                }
+            }, 3000);
         });
     </script>
 

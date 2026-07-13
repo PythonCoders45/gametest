@@ -55,6 +55,20 @@
             image-rendering: pixelated;
             z-index: 2;
         }
+
+        /* Layer 3: Ground (Foreground - 64 wide x 16 high) */
+        .bg-layer-3 {
+            position: absolute;
+            bottom: 0; /* Stays at the absolute bottom */
+            left: 0;
+            width: 100%;
+            height: 96px; /* 6x scale height (16 * 6 = 96) to match buildings scale */
+            background-image: url('pixil-frame-0 (29).png');
+            background-repeat: repeat-x; /* Loop horizontally */
+            background-size: auto 100%;
+            image-rendering: pixelated;
+            z-index: 3; /* Sits directly on top of the buildings layer */
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
@@ -63,6 +77,7 @@
     <div class="bg-container">
         <div class="bg-layer-1"></div>
         <div class="bg-layer-2"></div>
+        <div class="bg-layer-3"></div>
     </div>
 
     <script>
@@ -70,26 +85,35 @@
             // Track positions for the backgrounds
             let posX1 = 0;
             let posX2 = 0;
-
+            let posX3 = 0;
+            
             // Speeds for each layer (pixels per frame)
             const speed1 = 0.5; // Stars move slower
             const speed2 = 2.0; // Buildings move faster
 
+            let lastTime = performance.now();
+
             // Animation loop using requestAnimationFrame for perfect smoothness
             function animateBackgrounds() {
+                let deltaTime = (currentTime - lastTime) / 1000;
+                lastTime = currentTime;
+                
                 posX1 -= speed1;
                 posX2 -= speed2;
+
+                posX3 -= pixelsPerSecond * deltaTime;
 
                 // Apply positions (keeping vertical axes locked)
                 $('.bg-layer-1').css('background-position', posX1 + 'px 0px');
                 $('.bg-layer-2').css('background-position', posX2 + 'px bottom');
+                $('.bg-layer-3').css('background-position', posX3 + 'px bottom');
 
                 // Loop the animation continuously
                 requestAnimationFrame(animateBackgrounds);
             }
 
             // Start the loop
-            animateBackgrounds();
+            requestAnimationBackgrounds();
         });
     </script>
 

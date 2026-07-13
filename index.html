@@ -11,6 +11,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            background-color: #000;
         }
 
         /* Container to hold both background layers */
@@ -18,47 +19,41 @@
             position: relative;
             width: 100%;
             height: 100%;
-            background-color: #111; /* Fallback color */
         }
 
-        /* Base background layer (Slower) */
+        /* Base background layer (Slower stars - 32x32 original) */
         .bg-layer-1 {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('night.png'); /* Replace with your image */
-            background-repeat: repeat-x;
-            background-size: cover;
+            background-image: url('night.png');
+            background-repeat: repeat; /* Repeat everywhere for stars */
+            
+            /* Scale up perfectly by 4x (32 * 4 = 128) */
+            background-size: 128px 128px; 
+            image-rendering: pixelated;
             z-index: 1;
         }
 
-        /* Foreground background layer (Faster) */
+        /* Foreground background layer (Faster buildings - 64x64 original) */
         .bg-layer-2 {
             position: absolute;
-            top: 0;
+            bottom: 0; /* Lock buildings to the bottom of the screen */
             left: 0;
             width: 100%;
-            height: 100%;
-            background-image: url('buildings.png'); /* Replace with a transparent PNG if needed */
-            background-repeat: repeat-x;
-            background-size: cover;
-            opacity: 0.7; /* Blend it with the background */
+            
+            /* Scale height up by 4x to match the star scaling (64 * 4 = 256) */
+            height: 256px; 
+            
+            background-image: url('buildings.png');
+            background-repeat: repeat-x; /* Only loop horizontally */
+            
+            /* width auto scales proportionally, height fills the 256px zone */
+            background-size: auto 100%; 
+            image-rendering: pixelated;
             z-index: 2;
-        }
-
-        /* Overlay content just to show it sits on top */
-        .content {
-            position: absolute;
-            z-index: 3;
-            color: white;
-            font-family: sans-serif;
-            font-size: 3rem;
-            text-align: center;
-            width: 100%;
-            top: 45%;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
@@ -68,29 +63,28 @@
     <div class="bg-container">
         <div class="bg-layer-1"></div>
         <div class="bg-layer-2"></div>
-        <div class="content"></div>
     </div>
 
     <script>
         $(document).ready(function() {
-            // Initial positions for the backgrounds
+            // Track positions for the backgrounds
             let posX1 = 0;
             let posX2 = 0;
 
             // Speeds for each layer (pixels per frame)
-            const speed1 = 0.5; // Slower background
-            const speed2 = 1.5; // Faster foreground
+            const speed1 = 0.5; // Stars move slower
+            const speed2 = 2.0; // Buildings move faster
 
-            // Animation loop using requestAnimationFrame for smoothness
+            // Animation loop using requestAnimationFrame for perfect smoothness
             function animateBackgrounds() {
                 posX1 -= speed1;
                 posX2 -= speed2;
 
-                // Apply the new position to the background-position property
+                // Apply positions (keeping vertical axes locked)
                 $('.bg-layer-1').css('background-position', posX1 + 'px 0px');
-                $('.bg-layer-2').css('background-position', posX2 + 'px 0px');
+                $('.bg-layer-2').css('background-position', posX2 + 'px bottom');
 
-                // Loop the animation
+                // Loop the animation continuously
                 requestAnimationFrame(animateBackgrounds);
             }
 

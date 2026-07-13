@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Fighter - Main Menu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0c0202; /* Deep dark crimson-tinted background */
+            font-family: 'Press Start 2P', monospace;
+            color: #fff;
+            user-select: none;
+        }
+
+        /* Container to contain the generated pixel elements */
+        .pixel-bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        /* Generated pixel shapes */
+        .bg-pixel {
+            position: absolute;
+            background-color: #ffffff;
+            image-rendering: pixelated;
+            opacity: 0.15; /* Sits nicely in the background without being distracting */
+            pointer-events: none;
+        }
+
+        /* Center container for the title and the clean play button */
+        .menu-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10; /* Forces menu UI to sit on top of the pixel generator */
+            background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(0,0,0,0.8) 90%);
+        }
+
+        /* Game Title */
+        .game-title {
+            font-size: 3.5rem;
+            color: #ffffff;
+            text-shadow: 5px 5px 0px #0000, 0 0 20px rgba(255, 0, 0, 0.5);
+            margin-bottom: 70px;
+            text-align: center;
+            letter-spacing: 4px;
+            animation: titlePulse 2s infinite alternate ease-in-out;
+        }
+
+        /* Clean retro layout for the single Play Button */
+        .play-btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 2rem;
+            color: #ffffff;
+            background-color: #fffff;
+            border: 4px solid #ffffff;
+            padding: 20px 50px;
+            cursor: pointer;
+            box-shadow: 6px 6px 0px #000;
+            text-shadow: 3px 3px 0px #000;
+            transition: all 0.1s steps(4); /* Retro choppy transition style */
+            outline: none;
+        }
+
+        /* Hover effect: inversion look */
+        .play-btn:hover {
+            background-color: #ffffff;
+            color: #ff0000;
+            border-color: #ff0000;
+            box-shadow: 10px 10px 0px #000;
+            transform: translate(-4px, -4px);
+            text-shadow: none;
+        }
+
+        /* Click effect */
+        .play-btn:active {
+            box-shadow: 2px 2px 0px #000;
+            transform: translate(4px, 4px);
+        }
+
+        @keyframes titlePulse {
+            from { transform: scale(0.97); }
+            to { transform: scale(1.03); text-shadow: 5px 5px 0px #000, 0 0 35px rgba(255, 0, 0, 0.8); }
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+
+    <div class="pixel-bg-canvas" id="pixel-canvas"></div>
+
+    <div class="menu-container">
+        <h1 class="game-title">PIXEL FIGHTER</h1>
+        <button class="play-btn" id="play-button">PLAY</button>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            const $canvas = $('#pixel-canvas');
+            const totalPixels = 40; // Number of pixel elements floating on screen at once
+            const colors = ['#ff0000', '#990000', '#ff5555', '#330000']; // Retro reds and crimsons
+
+            // Function to generate a custom pixel element
+            function createPixel(isInitial) {
+                // Keep dimensions blocked out in neat 8-bit multiples (16px, 32px, 48px, 64px)
+                const sizeMultipliers = [16, 32, 48, 64];
+                const size = sizeMultipliers[Math.floor(Math.random() * sizeMultipliers.length)];
+                
+                // Position randomly across screen horizontal axis
+                const startLeft = Math.random() * 100;
+                
+                // If it's starting up the menu, scatter them instantly. Otherwise, spawn off-screen below.
+                const startTop = isInitial ? (Math.random() * 100) : 105; 
+                
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                // Random floating speeds (higher pixels take slightly different times)
+                const floatDuration = (Math.random() * 8000) + 7000; 
+
+                // Inject element via jQuery
+                const $pixel = $('<div class="bg-pixel"></div>').css({
+                    width: size + 'px',
+                    height: size + 'px',
+                    left: startLeft + '%',
+                    top: startTop + '%',
+                    backgroundColor: randomColor
+                });
+
+                $canvas.append($pixel);
+
+                // Animate them rising upwards to the top
+                $pixel.animate({
+                    top: '-15%'
+                }, floatDuration, 'linear', function() {
+                    // Once it goes past the screen top limit, destroy it and spawn a new replacement
+                    $(this).remove();
+                    createPixel(false);
+                });
+            }
+
+            // Populate the screen with pixel blocks on startup instantly
+            for (let i = 0; i < totalPixels; i++) {
+                createPixel(true);
+            }
+
+            // Redirect smoothly to your game screen when Play is triggered
+            $('#play-button').on('click', function() {
+                window.location.href = 'game.html'; 
+            });
+        });
+    </script>
+
+</body>
+</html>

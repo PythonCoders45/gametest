@@ -30,8 +30,6 @@
             height: 100%;
             background-image: url('night.png');
             background-repeat: repeat; /* Repeat everywhere for stars */
-            
-            /* Scale up perfectly by 4x (32 * 4 = 128) */
             background-size: 128px 128px; 
             image-rendering: pixelated;
             z-index: 1;
@@ -43,14 +41,9 @@
             bottom: 0; /* Lock buildings to the bottom of the screen */
             left: 0;
             width: 100%;
-            
-            /* Scale height up by 4x to match the star scaling (64 * 4 = 256) */
             height: 576px; 
-            
             background-image: url('buildings.png');
             background-repeat: repeat-x; /* Only loop horizontally */
-            
-            /* width auto scales proportionally, height fills the 256px zone */
             background-size: auto 100%; 
             image-rendering: pixelated;
             z-index: 2;
@@ -62,7 +55,7 @@
             bottom: 0; /* Stays at the absolute bottom */
             left: 0;
             width: 100%;
-            height: 96px; /* 6x scale height (16 * 6 = 96) to match buildings scale */
+            height: 96px; /* 6x scale height (16 * 6 = 96) */
             background-image: url('pixil-frame-0 (29).png');
             background-repeat: repeat-x; /* Loop horizontally */
             background-size: auto 100%;
@@ -91,16 +84,18 @@
             const speed1 = 0.5; // Stars move slower
             const speed2 = 2.0; // Buildings move faster
 
+            // Ground speed variable (1 pixel per second)
+            const pixelsPerSecond = 1; 
             let lastTime = performance.now();
 
-            // Animation loop using requestAnimationFrame for perfect smoothness
-            function animateBackgrounds() {
+            // Added 'currentTime' argument here so requestAnimationFrame can pass it in
+            function animateBackgrounds(currentTime) {
+                // Calculate time passed since the last frame
                 let deltaTime = (currentTime - lastTime) / 1000;
                 lastTime = currentTime;
                 
                 posX1 -= speed1;
                 posX2 -= speed2;
-
                 posX3 -= pixelsPerSecond * deltaTime;
 
                 // Apply positions (keeping vertical axes locked)
@@ -112,8 +107,8 @@
                 requestAnimationFrame(animateBackgrounds);
             }
 
-            // Start the loop
-            animateBackgrounds();
+            // Start the loop and pass the initial frame time
+            requestAnimationFrame(animateBackgrounds);
         });
     </script>
 

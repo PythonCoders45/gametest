@@ -57,10 +57,11 @@
             width: 100%;
             height: 96px; /* 6x scale height (16 * 6 = 96) */
             background-image: url('pixil-frame-0 (29).png');
-            background-repeat: repeat-x; /* Loop horizontally */
+            background-repeat: repeat-x; 
             background-size: auto 100%;
             image-rendering: pixelated;
-            z-index: 3; /* Sits directly on top of the buildings layer */
+            /* High z-index ensures it renders visually ON TOP of the buildings */
+            z-index: 99; 
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
